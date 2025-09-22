@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Facebook OAuth Test</title>
+</head>
+<body>
+  <h1>Login with Facebook Test</h1>
+
+  <!-- الزرار الجاهز من فيسبوك -->
+  <fb:login-button 
+    scope="public_profile,email"
+    onlogin="checkLoginState();">
+  </fb:login-button>
+
+  <div id="status"></div>
+
+  <script>
+    const API_URL = "https://localhost:7204/api/Account/external-login"; // عدل حسب API بتاعك
+
+    // تحميل SDK بتاع فيسبوك
+    window.fbAsyncInit = function() {
+      FB.init({
+        appId      : '24635154546118319',
+        cookie     : true,
+        xfbml      : true,
+        version    : 'v21.0'
+      });
+    };
+
+    (function(d, s, id){
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) {return;}
+      js = d.createElement(s); js.id = id;
+      js.src = "https://connect.facebook.net/en_US/sdk.js";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+
+    // بيتنادى أول ما المستخدم يعمل لوجين
+    function checkLoginState() {
+      FB.getLoginStatus(function(response) {
+        if (response.status === 'connected') {
+          const accessToken = response.authResponse.accessToken;
+          console.log("Facebook Access Token:", accessToken);
+
+          loginWithFacebook(accessToken);
+        } else {
+          document.getElementById('status').innerText = "Login failed or cancelled.";
+        }
+      });
+    }
+
+    async function loginWithFacebook(accessToken) {
+      const request = {
+        provider: "Facebook",
+        idToken: accessToken, // هنا بنبعت الـ access token للباك اند
+        role: "Client"
+      };
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(request)
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          console.error("Login failed:", error);
+          alert("Login failed: " + JSON.stringify(error));
+          return;
+        }
+
+        const data = await res.json();
+        console.log("Login successful:", data);
+        alert("Login successful! Check console for response.");
+      } catch (err) {
+        console.error("Error:", err);
+        alert("Error occurred: " + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
