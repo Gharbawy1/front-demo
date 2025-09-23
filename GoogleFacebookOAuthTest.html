@@ -7,7 +7,7 @@
 <body>
   <h1>Login with Facebook Test</h1>
 
-  <!-- الزرار الجاهز من فيسبوك -->
+  <!-- Ready btn from Facebook-->
   <fb:login-button 
     scope="public_profile,email"
     onlogin="checkLoginState();">
@@ -16,9 +16,9 @@
   <div id="status"></div>
 
   <script>
-    const API_URL = "https://localhost:7204/api/Account/external-login"; // عدل حسب API بتاعك
+    const API_URL = "https://localhost:7204/api/Account/external-login";
 
-    // تحميل SDK بتاع فيسبوك
+    // Get Facebook SDK
     window.fbAsyncInit = function() {
       FB.init({
         appId      : '24635154546118319',

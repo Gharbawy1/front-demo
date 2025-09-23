@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Google OAuth Test</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+    <h1>Login with Google Test</h1>
+    <div id="g_id_onload"
+         data-client_id="710517406086-vlr501mfdnbmc5o8p8jv07qaks1jvveg.apps.googleusercontent.com"
+         data-context="signup"
+         data-ux_mode="popup"
+         data-callback="handleCredentialResponse">
+    </div>
+    <FacebookLogin
+                appId="YOUR_FACEBOOK_APP_ID"
+                callback={handleFacebookResponse}
+                fields="name,email,picture"
+                icon="fa-facebook"
+                textButton="Login with Facebook"
+                cssClass="facebook-button"
+            />
+    <div class="g_id_signin" data-type="standard"></div>
+
+    <script>
+        const API_URL = "https://localhost:7204/api/Account/external-login"; // عدّل حسب API بتاعك
+
+        async function handleCredentialResponse(response) {
+            // response.credential هو الـ id_token
+            console.log("Google ID Token:", response.credential);
+
+            const request = {
+                provider: "Google",
+                idToken: response.credential,
+                role: "Client"
+            };
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(request)
+                });
+
+                if (!res.ok) {
+                    const error = await res.json();
+                    console.error("Login failed:", error);
+                    alert("Login failed: " + JSON.stringify(error));
+                    return;
+                }
+
+                const data = await res.json();
+                console.log("Login successful:", data);
+                alert("Login successful! Check console for response.");
+            } catch (err) {
+                console.error("Error:", err);
+                alert("Error occurred: " + err.message);
+            }
+        }
+    </script>
+</body>
+</html>
