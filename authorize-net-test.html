@@ -246,7 +246,7 @@
         const res = await fetch(CONFIG.payEndpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json',
-                     'Authorization': AUTH_BEARER
+                     'Authorization': 'Bearer ' + AUTH_BEARER
            },
           body: JSON.stringify(payload)
         });
