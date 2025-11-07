@@ -36,102 +36,123 @@
   <script src="https://js.authorize.net/v1/Accept.js"></script>
 
   <form id="paymentForm" autocomplete="off">
-    <h3>Customer / Billing</h3>
-    <label>First name
-      <input id="firstName" name="firstName" required value="Ahmed"/>
-    </label>
-    <label>Last name
-      <input id="lastName" name="lastName" required value="Elghrabawy"/>
-    </label>
-    <label>Contact (email or mobile)
-      <input id="contactInfo" name="contactInfo" required value="test@example.com"/>
-    </label>
-    <label>Address
-      <input id="address" name="address" value="New York"/>
-    </label>
-    <div class="row">
-      <div>
-        <label>City
-          <input id="city" name="city" value="New York"/>
-        </label>
-      </div>
-      <div>
-        <label>Zip
-          <input id="zip" name="zip" value="12345"/>
-        </label>
-      </div>
+  <h3>Customer / Billing</h3>
+  <label>First name
+    <input id="firstName" name="firstName" required value="Ahmed"/>
+  </label>
+  <label>Last name
+    <input id="lastName" name="lastName" required value="Elghrabawy"/>
+  </label>
+  <label>Contact (email or mobile)
+    <input id="contactInfo" name="contactInfo" required value="test@example.com"/>
+  </label>
+  <label>Address
+    <input id="address" name="address" value="New York"/>
+  </label>
+
+  <div class="row">
+    <div>
+      <label>City
+        <input id="city" name="city" value="New York"/>
+      </label>
     </div>
-
-    <h3>Card Info (tokenized client-side)</h3>
-    <label>Card number
-      <input id="cardNumber" name="cardNumber" inputmode="numeric" autocomplete="cc-number" required placeholder="4111 1111 1111 1111" />
-    </label>
-
-    <div class="row">
-      <div>
-        <label>Exp Month (MM)
-          <input id="expMonth" name="expMonth" inputmode="numeric" required placeholder="MM" />
-        </label>
-      </div>
-      <div>
-        <label>Exp Year (YYYY)
-          <input id="expYear" name="expYear" inputmode="numeric" required placeholder="YYYY" />
-        </label>
-      </div>
-      <div style="flex:0 0 120px;">
-        <label>CVV
-          <input id="cvv" name="cvv" inputmode="numeric" required placeholder="123" />
-        </label>
-      </div>
+    <div>
+      <label>State
+        <input id="state" name="state" value="NY"/>
+      </label>
     </div>
+  </div>
 
-    <h3>Order</h3>
-    <label>Promo Code (optional)
-      <input id="promoCode" name="promoCode" placeholder="PROMO123"/>
-    </label>
+  <div class="row">
+    <div>
+      <label>County
+        <input id="county" name="county" value="New York County"/>
+      </label>
+    </div>
+    <div>
+      <label>Country
+        <input id="country" name="country" value="USA"/>
+      </label>
+    </div>
+  </div>
 
-    <!-- Items input (for testing, single item + add more UI) -->
-    <div class="items-list" id="itemsList">
-      <div class="item">
-        <label>Service ID
-          <input class="serviceId" value="20b513c2-d3ef-42a4-b007-ee60ff6a8fdb" />
-        </label>
-        <label>Name
-          <input class="itemName" value="1040 Single /MFS - Basic 1 W2 or 1 Sch C" />
-        </label>
-        <div class="row">
-          <div>
-            <label>Price (USD)
-              <input class="itemPrice" type="number" step="0.01" value="9" />
-            </label>
-          </div>
-          <div>
-            <label>Quantity
-              <input class="itemQty" type="number" min="1" value="1" />
-            </label>
-          </div>
+  <div class="row">
+    <div>
+      <label>Zip
+        <input id="zip" name="zip" value="12345"/>
+      </label>
+    </div>
+  </div>
+
+  <h3>Card Info (tokenized client-side)</h3>
+  <label>Card number
+    <input id="cardNumber" name="cardNumber" inputmode="numeric" autocomplete="cc-number" required placeholder="4111 1111 1111 1111" />
+  </label>
+
+  <div class="row">
+    <div>
+      <label>Exp Month (MM)
+        <input id="expMonth" name="expMonth" inputmode="numeric" required placeholder="MM" />
+      </label>
+    </div>
+    <div>
+      <label>Exp Year (YYYY)
+        <input id="expYear" name="expYear" inputmode="numeric" required placeholder="YYYY" />
+      </label>
+    </div>
+    <div style="flex:0 0 120px;">
+      <label>CVV
+        <input id="cvv" name="cvv" inputmode="numeric" required placeholder="123" />
+      </label>
+    </div>
+  </div>
+
+  <h3>Order</h3>
+  <label>Promo Code (optional)
+    <input id="promoCode" name="promoCode" placeholder="PROMO123"/>
+  </label>
+
+  <div class="items-list" id="itemsList">
+    <div class="item">
+      <label>Service ID
+        <input class="serviceId" value="20b513c2-d3ef-42a4-b007-ee60ff6a8fdb" />
+      </label>
+      <label>Name
+        <input class="itemName" value="1040 Single /MFS - Basic 1 W2 or 1 Sch C" />
+      </label>
+      <div class="row">
+        <div>
+          <label>Price (USD)
+            <input class="itemPrice" type="number" step="0.01" value="9" />
+          </label>
         </div>
-        <div class="row">
-          <div>
-            <label>Delivery Type
-              <input class="deliveryType" value="Online" />
-            </label>
-          </div>
-          <div>
-            <label>Shipping?
-              <select class="shipping">
-                <option value="true" selected>true</option>
-                <option value="false">false</option>
-              </select>
-            </label>
-          </div>
+        <div>
+          <label>Quantity
+            <input class="itemQty" type="number" min="1" value="1" />
+          </label>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Delivery Type
+            <input class="deliveryType" value="Online" />
+          </label>
+        </div>
+        <div>
+          <label>Shipping?
+            <select class="shipping">
+              <option value="true" selected>true</option>
+              <option value="false">false</option>
+            </select>
+          </label>
         </div>
       </div>
     </div>
+  </div>
 
-    <button id="payBtn" type="button" style="margin-top:16px;">Pay now</button>
-    <div id="status" class="status"></div>
-  </form>
+  <button id="payBtn" type="button" style="margin-top:16px;">Pay now</button>
+  <div id="status" class="status"></div>
+</form>
 
   <script>
   (function () {
