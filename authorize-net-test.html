@@ -261,37 +261,47 @@
     }
 
     function acceptResponseHandler(response) {
-      if (response && response.messages && response.messages.resultCode === "Error") {
-        const messages = response.messages.message.map(m => m.text).join(" | ");
-        setLoading(false);
-        showStatus("Tokenization error: " + messages, "error");
-        return;
+  console.log("Accept.js raw response:", response);
+
+  // handle real error (no opaqueData at all)
+  if (!response || !response.opaqueData || !response.opaqueData.dataValue) {
+    setLoading(false);
+    const errMsg =
+      response?.messages?.message?.map(m => m.text).join(" | ") ||
+      "Tokenization failed: no data returned.";
+    showStatus(errMsg, "error");
+    return;
+  }
+
+  // handle success even if resultCode says "Error"
+  const token = response.opaqueData.dataValue;
+  const payload = createRequestPayload(token);
+
+  console.log("Sending payload to backend:", payload);
+
+  postOrder(payload).then(result => {
+    setLoading(false);
+    if (result.ok) {
+      const b = result.body;
+      if (b?.Success) {
+        showStatus(
+          "Payment success! OrderId: " +
+            (b.OrderId ?? "") +
+            " — " +
+            (b.Message ?? ""),
+          "success"
+        );
+      } else {
+        showStatus("Payment failed: " + (b?.Error ?? JSON.stringify(b)), "error");
       }
-
-      if (!response || !response.opaqueData || !response.opaqueData.dataValue) {
-        setLoading(false);
-        showStatus("Tokenization failed: no opaqueData returned.", "error");
-        return;
-      }
-
-      const token = response.opaqueData.dataValue;
-      const payload = createRequestPayload(token);
-
-      postOrder(payload).then(result => {
-        setLoading(false);
-        if (result.ok) {
-          const b = result.body;
-          if (b?.Success) {
-            showStatus("Payment success! OrderId: " + (b.OrderId ?? "") + " — " + (b.Message ?? ""), "success");
-          } else {
-            showStatus("Payment failed: " + (b?.Error ?? JSON.stringify(b)), "error");
-          }
-        } else {
-          showStatus("Server error (" + result.status + "): " + JSON.stringify(result.body), "error");
-        }
-      });
+    } else {
+      showStatus(
+        "Server error (" + result.status + "): " + JSON.stringify(result.body),
+        "error"
+      );
     }
-
+  });
+}
     payBtn.addEventListener('click', function () {
       clearStatus();
 
