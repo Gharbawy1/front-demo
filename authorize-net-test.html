@@ -158,6 +158,7 @@
   (function () {
     const payBtn = document.getElementById('payBtn');
     const statusEl = document.getElementById('status');
+    const AUTH_BEARER = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiI4NjM2YWE4Yy1jYTI1LTRkMmQtYWNlYS02NDM5ZjI4YmJhNTQiLCJlbWFpbCI6ImFkbWluQGdhaGJpei5jb20iLCJnaXZlbl9uYW1lIjoiYWRtaW5AZ2FoYml6LmNvbSIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTc2MjExMTg5NywiZXhwIjoxNzYyNzE2Njk3LCJpYXQiOjE3NjIxMTE4OTcsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjcxMDEiLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo3MTAxIn0.tGBtPSh1USkiQ8WCLo-20-OJWX6wikY-0IfKmhDvd40";
 
     function showStatus(msg, type = 'error') {
       statusEl.className = 'status ' + (type === 'success' ? 'success' : 'error');
@@ -244,7 +245,10 @@
       try {
         const res = await fetch(CONFIG.payEndpoint, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + AUTH_BEARER
+
+           },
           body: JSON.stringify(payload)
         });
 
