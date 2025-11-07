@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Checkout — Send request shape (cardToken + items)</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; max-width: 780px; margin: 24px auto; padding: 0 16px; direction:ltr; }
+    label { display:block; margin-top:12px; font-weight:600; }
+    input, select, button, textarea { width:100%; padding:8px; margin-top:6px; box-sizing:border-box; }
+    .row { display:flex; gap:12px; }
+    .row > * { flex:1; }
+    .small { width:120px; }
+    .status { margin-top:12px; padding:10px; border-radius:6px; display:none; }
+    .status.success { background:#e6ffed; color:#0a6b2b; display:block; }
+    .status.error { background:#ffe6e6; color:#8a0a0a; display:block; }
+    .spinner { display:inline-block; width:14px; height:14px; border:2px solid #ccc; border-top-color:#333; border-radius:50%; animation:spin 0.9s linear infinite; vertical-align:middle; margin-left:8px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .items-list { margin-top:8px; border:1px dashed #ccc; padding:8px; border-radius:6px; }
+    .items-list .item { padding:8px 0; border-bottom:1px solid #eee; }
+  </style>
+</head>
+<body>
+
+  <h1>Checkout — Sandbox (new request shape)</h1>
+  <p>استخدم بطاقة اختبار مثل <code>4111 1111 1111 1111</code>، Exp مستقبل، CVV: <code>123</code>.</p>
+
+  <script>
+    const CONFIG = {
+      apiLoginID: "7K48Mhxf",
+      clientKey:  "7fgBZD7z9G3M2rq9NFn6FeuT997RA2hrBbjF9hjAj5H2d4gTA3mrUxTMAwMzD4p6",
+      payEndpoint: "https://localhost:7204/api/Pay" // endpoint on your backend
+    };
+  </script>
+
+  <script src="https://js.authorize.net/v3/Accept.js"></script>
+
+  <form id="paymentForm" autocomplete="off">
+    <h3>Customer / Billing</h3>
+    <label>First name
+      <input id="firstName" name="firstName" required value="Ahmed"/>
+    </label>
+    <label>Last name
+      <input id="lastName" name="lastName" required value="Elghrabawy"/>
+    </label>
+    <label>Contact (email or mobile)
+      <input id="contactInfo" name="contactInfo" required value="test@example.com"/>
+    </label>
+    <label>Address
+      <input id="address" name="address" value="New York"/>
+    </label>
+    <div class="row">
+      <div>
+        <label>City
+          <input id="city" name="city" value="New York"/>
+        </label>
+      </div>
+      <div>
+        <label>Zip
+          <input id="zip" name="zip" value="12345"/>
+        </label>
+      </div>
+    </div>
+
+    <h3>Card Info (tokenized client-side)</h3>
+    <label>Card number
+      <input id="cardNumber" name="cardNumber" inputmode="numeric" autocomplete="cc-number" required placeholder="4111 1111 1111 1111" />
+    </label>
+
+    <div class="row">
+      <div>
+        <label>Exp Month (MM)
+          <input id="expMonth" name="expMonth" inputmode="numeric" required placeholder="MM" />
+        </label>
+      </div>
+      <div>
+        <label>Exp Year (YYYY)
+          <input id="expYear" name="expYear" inputmode="numeric" required placeholder="YYYY" />
+        </label>
+      </div>
+      <div style="flex:0 0 120px;">
+        <label>CVV
+          <input id="cvv" name="cvv" inputmode="numeric" required placeholder="123" />
+        </label>
+      </div>
+    </div>
+
+    <h3>Order</h3>
+    <label>Promo Code (optional)
+      <input id="promoCode" name="promoCode" placeholder="PROMO123"/>
+    </label>
+
+    <!-- Items input (for testing, single item + add more UI) -->
+    <div class="items-list" id="itemsList">
+      <div class="item">
+        <label>Service ID
+          <input class="serviceId" value="20b513c2-d3ef-42a4-b007-ee60ff6a8fdb" />
+        </label>
+        <label>Name
+          <input class="itemName" value="1040 Single /MFS - Basic 1 W2 or 1 Sch C" />
+        </label>
+        <div class="row">
+          <div>
+            <label>Price (USD)
+              <input class="itemPrice" type="number" step="0.01" value="9" />
+            </label>
+          </div>
+          <div>
+            <label>Quantity
+              <input class="itemQty" type="number" min="1" value="1" />
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Delivery Type
+              <input class="deliveryType" value="Online" />
+            </label>
+          </div>
+          <div>
+            <label>Shipping?
+              <select class="shipping">
+                <option value="true" selected>true</option>
+                <option value="false">false</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button id="payBtn" type="button" style="margin-top:16px;">Pay now</button>
+    <div id="status" class="status"></div>
+  </form>
+
+  <script>
+  (function () {
+    const payBtn = document.getElementById('payBtn');
+    const statusEl = document.getElementById('status');
+
+    function showStatus(msg, type = 'error') {
+      statusEl.className = 'status ' + (type === 'success' ? 'success' : 'error');
+      statusEl.innerHTML = msg;
+    }
+    function clearStatus() {
+      statusEl.className = 'status';
+      statusEl.innerHTML = '';
+    }
+    function setLoading(on) {
+      if (on) {
+        payBtn.disabled = true;
+        payBtn.innerHTML = 'Processing <span class="spinner"></span>';
+      } else {
+        payBtn.disabled = false;
+        payBtn.innerHTML = 'Pay now';
+      }
+    }
+
+    function buildSecureData() {
+      const cardNumber = document.getElementById('cardNumber').value.replace(/\s+/g, '');
+      const expMonth = document.getElementById('expMonth').value;
+      const expYear  = document.getElementById('expYear').value;
+      const cardCode = document.getElementById('cvv').value;
+
+      return {
+        authData: {
+          clientKey: CONFIG.clientKey,
+          apiLoginID: CONFIG.apiLoginID
+        },
+        cardData: {
+          cardNumber: cardNumber,
+          month: expMonth,
+          year: expYear,
+          cardCode: cardCode
+        }
+      };
+    }
+
+    function collectItems() {
+      const items = [];
+      const list = document.getElementById('itemsList');
+      const itemEls = list.querySelectorAll('.item');
+      itemEls.forEach(el => {
+        const serviceId = el.querySelector('.serviceId').value.trim();
+        const name = el.querySelector('.itemName').value.trim();
+        const price = parseFloat(el.querySelector('.itemPrice').value) || 0;
+        const quantity = parseInt(el.querySelector('.itemQty').value) || 1;
+        const deliveryType = el.querySelector('.deliveryType').value.trim() || "Online";
+        const shippingValue = el.querySelector('.shipping').value;
+        const shipping = shippingValue === 'true';
+
+        items.push({
+          serviceId: serviceId,
+          name: name,
+          price: price,
+          quantity: quantity,
+          deliveryType: deliveryType,
+          shipping: shipping
+        });
+      });
+      return items;
+    }
+
+    function createRequestPayload(opaqueDataValue) {
+      // matches the shape you posted
+      return {
+        firstName: document.getElementById('firstName').value.trim(),
+        lastName: document.getElementById('lastName').value.trim(),
+        address: document.getElementById('address').value.trim(),
+        country: document.getElementById('country').value.trim(), // earlier example had "country":"New York" - adjust if needed
+        state: document.getElementById('state').value.trim(),
+        county: document.getElementById('county').value.trim(),
+        city: document.getElementById('city').value.trim(),
+        zip: document.getElementById('zip').value.trim(),
+        contactInfo: document.getElementById('contactInfo').value.trim(),
+        cardToken: opaqueDataValue,
+        promoCode: document.getElementById('promoCode').value.trim() || "",
+        items: collectItems()
+      };
+    }
+
+    async function postOrder(payload) {
+      try {
+        const res = await fetch(CONFIG.payEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const text = await res.text();
+        try {
+          const json = JSON.parse(text);
+          return { ok: res.ok, status: res.status, body: json };
+        } catch (e) {
+          return { ok: res.ok, status: res.status, body: { raw: text } };
+        }
+      } catch (err) {
+        return { ok:false, status:0, body: { error: err.message || String(err) } };
+      }
+    }
+
+    function acceptResponseHandler(response) {
+      if (response && response.messages && response.messages.resultCode === "Error") {
+        const messages = response.messages.message.map(m => m.text).join(" | ");
+        setLoading(false);
+        showStatus("Tokenization error: " + messages, "error");
+        return;
+      }
+
+      if (!response || !response.opaqueData || !response.opaqueData.dataValue) {
+        setLoading(false);
+        showStatus("Tokenization failed: no opaqueData returned.", "error");
+        return;
+      }
+
+      const token = response.opaqueData.dataValue;
+      const payload = createRequestPayload(token);
+
+      postOrder(payload).then(result => {
+        setLoading(false);
+        if (result.ok) {
+          const b = result.body;
+          if (b?.Success) {
+            showStatus("Payment success! OrderId: " + (b.OrderId ?? "") + " — " + (b.Message ?? ""), "success");
+          } else {
+            showStatus("Payment failed: " + (b?.Error ?? JSON.stringify(b)), "error");
+          }
+        } else {
+          showStatus("Server error (" + result.status + "): " + JSON.stringify(result.body), "error");
+        }
+      });
+    }
+
+    payBtn.addEventListener('click', function () {
+      clearStatus();
+
+      // minimal validation
+      const required = ['cardNumber','expMonth','expYear','cvv','firstName','lastName','contactInfo'];
+      for (const id of required) {
+        const el = document.getElementById(id);
+        if (!el || !el.value.trim()) {
+          showStatus("Please fill all required fields.", "error");
+          return;
+        }
+      }
+
+      setLoading(true);
+
+      const secureData = buildSecureData();
+      try {
+        Accept.dispatchData(secureData, acceptResponseHandler);
+      } catch (ex) {
+        setLoading(false);
+        showStatus("Accept.js error: " + (ex.message || ex), "error");
+      }
+    });
+
+  })();
+  </script>
+
+</body>
+</html>
