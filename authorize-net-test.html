@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Checkout — Send request shape (cardToken + items)</title>
+  <title>Checkout — Multi Items + Metadata (Appointment Test)</title>
   <style>
-    body { font-family: Arial, Helvetica, sans-serif; max-width: 780px; margin: 24px auto; padding: 0 16px; direction:ltr; }
+    body { font-family: Arial, Helvetica, sans-serif; max-width: 900px; margin: 24px auto; padding: 0 16px; direction:ltr; }
     label { display:block; margin-top:12px; font-weight:600; }
     input, select, button, textarea { width:100%; padding:8px; margin-top:6px; box-sizing:border-box; }
     .row { display:flex; gap:12px; }
@@ -16,234 +16,195 @@
     .status.error { background:#ffe6e6; color:#8a0a0a; display:block; }
     .spinner { display:inline-block; width:14px; height:14px; border:2px solid #ccc; border-top-color:#333; border-radius:50%; animation:spin 0.9s linear infinite; vertical-align:middle; margin-left:8px; }
     @keyframes spin { to { transform:rotate(360deg); } }
-    .items-list { margin-top:8px; border:1px dashed #ccc; padding:8px; border-radius:6px; }
-    .items-list .item { padding:8px 0; border-bottom:1px solid #eee; }
+    .items-list { margin-top:8px; border:1px dashed #ccc; padding:8px; border-radius:6px; background:#f9f9f9; }
+    .item { padding:12px; border:1px solid #ddd; border-radius:6px; margin-bottom:12px; background:white; position:relative; }
+    .remove-item { position:absolute; top:8px; right:8px; background:red; color:white; border:none; width:24px; height:24px; border-radius:50%; cursor:pointer; font-weight:bold; }
+    textarea { height:100px; font-family: monospace; }
+    .add-btn { background:#007bff; color:white; padding:10px; border:none; cursor:pointer; margin-top:8px; }
   </style>
 </head>
 <body>
 
-  <h1>Checkout — Sandbox (new request shape)</h1>
-  <p>استخدم بطاقة اختبار مثل <code>4111 1111 1111 1111</code>، Exp مستقبل، CVV: <code>123</code>.</p>
+  <h1>Checkout — Multi Items + Metadata (Appointment Ready)</h1>
+  <p>استخدم بطاقة اختبار: <code>4111 1111 1111 1111</code> | Exp: <code>12/30</code> | CVV: <code>123</code></p>
 
   <script>
     const CONFIG = {
-      // SANDBOX credentials
       apiLoginID: "25pQwt2Vd",
-      clientKey:  "95n56trhr7Cg4cvFMSEjtWL2P9K7m4685G7HQ3mtJGVTW2FSCcbd8TNRCMat5z9x",
-      payEndpoint: "https://localhost:7204/api/Pay" // endpoint on your backend
-
-      // PRODUCTION credentials
-      // apiLoginID: "7K48Mhxf",
-      // clientKey:  "7fgBZD7z9G3M2rq9NFn6FeuT997RA2hrBbjF9hjAj5H2d4gTA3mrUxTMAwMzD4p6",
-      // payEndpoint: "https://localhost:7204/api/Pay" // endpoint on your backend
+      clientKey: "95n56trhr7Cg4cvFMSEjtWL2P9K7m4685G7HQ3mtJGVTW2FSCcbd8TNRCMat5z9x",
+      payEndpoint: "https://localhost:7204/api/Pay"
     };
   </script>
 
-  <!-- <script src="https://js.authorize.net/v1/Accept.js"></script> -->
-<script type="text/javascript" src="https://jstest.authorize.net/v1/Accept.js"></script>
+  <script type="text/javascript" src="https://jstest.authorize.net/v1/Accept.js"></script>
 
   <form id="paymentForm" autocomplete="off">
-  <h3>Customer / Billing</h3>
-  <label>First name
-    <input id="firstName" name="firstName" required value="Ahmed"/>
-  </label>
-  <label>Last name
-    <input id="lastName" name="lastName" required value="Elghrabawy"/>
-  </label>
-  <label>Contact (email or mobile)
-    <input id="contactInfo" name="contactInfo" required value="test@example.com"/>
-  </label>
-  <label>Address
-    <input id="address" name="address" value="New York"/>
-  </label>
+    <h3>Customer / Billing</h3>
+    <label>First name <input id="firstName" required value="Ahmed"/></label>
+    <label>Last name <input id="lastName" required value="Youssef"/></label>
+    <label>Contact (email or mobile) <input id="contactInfo" required value="+201001234567"/></label>
+    <label>Address <input id="address" value="123 Nile Street"/></label>
 
-  <div class="row">
-    <div>
-      <label>City
-        <input id="city" name="city" value="New York"/>
-      </label>
+    <div class="row">
+      <label>City <input id="city" value="Cairo"/></label>
+      <label>State <input id="state" value="Cairo"/></label>
     </div>
-    <div>
-      <label>State
-        <input id="state" name="state" value="NY"/>
-      </label>
+    <div class="row">
+      <label>County <input id="county" value="Nasr City"/></label>
+      <label>Country <input id="country" value="Egypt"/></label>
     </div>
-  </div>
+    <label>Zip <input id="zip" value="11765"/></label>
 
-  <div class="row">
-    <div>
-      <label>County
-        <input id="county" name="county" value="New York County"/>
-      </label>
+    <h3>Card Info</h3>
+    <label>Card number <input id="cardNumber" placeholder="4111 1111 1111 1111" required /></label>
+    <div class="row">
+      <label>Exp Month <input id="expMonth" class="small" placeholder="12" required /></label>
+      <label>Exp Year <input id="expYear" class="small" placeholder="2030" required /></label>
+      <label>CVV <input id="cvv" class="small" placeholder="123" required /></label>
     </div>
-    <div>
-      <label>Country
-        <input id="country" name="country" value="USA"/>
-      </label>
-    </div>
-  </div>
 
-  <div class="row">
-    <div>
-      <label>Zip
-        <input id="zip" name="zip" value="12345"/>
-      </label>
-    </div>
-  </div>
+    <h3>Promo Code</h3>
+    <label>Promo Code (optional) <input id="promoCode" placeholder="PROMO123"/></label>
 
-  <h3>Card Info (tokenized client-side)</h3>
-  <label>Card number
-    <input id="cardNumber" name="cardNumber" inputmode="numeric" autocomplete="cc-number" required placeholder="4111 1111 1111 1111" />
-  </label>
-
-  <div class="row">
-    <div>
-      <label>Exp Month (MM)
-        <input id="expMonth" name="expMonth" inputmode="numeric" required placeholder="MM" />
-      </label>
+    <h3>Order Items</h3>
+    <div class="items-list" id="itemsList">
+      <!-- Items will be added here -->
     </div>
-    <div>
-      <label>Exp Year (YYYY)
-        <input id="expYear" name="expYear" inputmode="numeric" required placeholder="YYYY" />
-      </label>
-    </div>
-    <div style="flex:0 0 120px;">
-      <label>CVV
-        <input id="cvv" name="cvv" inputmode="numeric" required placeholder="123" />
-      </label>
-    </div>
-  </div>
+    <button type="button" class="add-btn" id="addItemBtn">+ Add Item</button>
 
-  <h3>Order</h3>
-  <label>Promo Code (optional)
-    <input id="promoCode" name="promoCode" placeholder="PROMO123"/>
-  </label>
+    <h3>Metadata (for Appointment)</h3>
+    <label>
+      Metadata (JSON string) - للحجز
+      <textarea id="metadata" placeholder='{"appointment_branch_id": "6d70ea40-f098-4f8d-8796-022a28c95e00", "appointment_date": "2025-11-08", "appointment_time": "12:00:00"}'>
+{
+  "appointment_branch_id": "6d70ea40-f098-4f8d-8796-022a28c95e00",
+  "appointment_date": "2025-11-08",
+  "appointment_time": "12:00:00"
+}
+      </textarea>
+    </label>
 
-  <div class="items-list" id="itemsList">
-    <div class="item">
-      <label>Service ID
-        <input class="serviceId" value="20b513c2-d3ef-42a4-b007-ee60ff6a8fdb" />
-      </label>
-      <label>Name
-        <input class="itemName" value="1040 Single /MFS - Basic 1 W2 or 1 Sch C" />
-      </label>
-      <div class="row">
-        <div>
-          <label>Price (USD)
-            <input class="itemPrice" type="number" step="0.01" value="9" />
-          </label>
-        </div>
-        <div>
-          <label>Quantity
-            <input class="itemQty" type="number" min="1" value="1" />
-          </label>
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Delivery Type
-            <input class="deliveryType" value="Online" />
-          </label>
-        </div>
-        <div>
-          <label>Shipping?
-            <select class="shipping">
-              <option value="true" selected>true</option>
-              <option value="false">false</option>
-            </select>
-          </label>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <button id="payBtn" type="button" style="margin-top:16px;">Pay now</button>
-  <div id="status" class="status"></div>
-</form>
+    <button id="payBtn" type="button" style="margin-top:20px; padding:12px; font-size:18px;">Pay now</button>
+    <div id="status" class="status"></div>
+  </form>
 
   <script>
   (function () {
     const payBtn = document.getElementById('payBtn');
     const statusEl = document.getElementById('status');
+    const itemsList = document.getElementById('itemsList');
+    const addItemBtn = document.getElementById('addItemBtn');
     const AUTH_BEARER = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiI4NjM2YWE4Yy1jYTI1LTRkMmQtYWNlYS02NDM5ZjI4YmJhNTQiLCJlbWFpbCI6ImFkbWluQGdhaGJpei5jb20iLCJnaXZlbl9uYW1lIjoiYWRtaW5AZ2FoYml6LmNvbSIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTc2MjExMTg5NywiZXhwIjoxNzYyNzE2Njk3LCJpYXQiOjE3NjIxMTE4OTcsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjcxMDEiLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo3MTAxIn0.tGBtPSh1USkiQ8WCLo-20-OJWX6wikY-0IfKmhDvd40";
+
+    // Default items (زي اللي عايزه)
+    const defaultItems = [
+      {
+        serviceId: "9defe476-1fdb-4050-a15b-a1e04985d854",
+        name: "Appointment",
+        price: 10,
+        quantity: 1,
+        deliveryType: "Online",
+        shipping: false
+      },
+      {
+        serviceId: "b076b52d-f06b-44fc-8979-1dec159b1b0a",
+        name: "Book Written test",
+        price: 1250,
+        quantity: 1,
+        deliveryType: "Online",
+        shipping: false
+      }
+    ];
+
+    function createItemHTML(item = {}) {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `
+        <button type="button" class="remove-item" onclick="this.parentElement.remove()">×</button>
+        <label>Service ID <input class="serviceId" value="${item.serviceId || ''}" /></label>
+        <label>Name <input class="itemName" value="${item.name || ''}" /></label>
+        <div class="row">
+          <label>Price (USD) <input class="itemPrice" type="number" step="0.01" value="${item.price || 0}" /></label>
+          <label>Quantity <input class="itemQty" type="number" min="1" value="${item.quantity || 1}" /></label>
+        </div>
+        <div class="row">
+          <label>Delivery Type <input class="deliveryType" value="${item.deliveryType || 'Online'}" /></label>
+          <label>Shipping?
+            <select class="shipping">
+              <option value="true" ${item.shipping ? 'selected' : ''}>true</option>
+              <option value="false" ${!item.shipping ? 'selected' : ''}>false</option>
+            </select>
+          </label>
+        </div>
+      `;
+      return div;
+    }
+
+    // Load default items
+    defaultItems.forEach(item => itemsList.appendChild(createItemHTML(item)));
+
+    addItemBtn.onclick = () => itemsList.appendChild(createItemHTML());
 
     function showStatus(msg, type = 'error') {
       statusEl.className = 'status ' + (type === 'success' ? 'success' : 'error');
       statusEl.innerHTML = msg;
     }
-    function clearStatus() {
-      statusEl.className = 'status';
-      statusEl.innerHTML = '';
-    }
+    function clearStatus() { statusEl.className = 'status'; statusEl.innerHTML = ''; }
     function setLoading(on) {
-      if (on) {
-        payBtn.disabled = true;
-        payBtn.innerHTML = 'Processing <span class="spinner"></span>';
-      } else {
-        payBtn.disabled = false;
-        payBtn.innerHTML = 'Pay now';
-      }
+      payBtn.disabled = on;
+      payBtn.innerHTML = on ? 'Processing <span class="spinner"></span>' : 'Pay now';
     }
 
     function buildSecureData() {
-      const cardNumber = document.getElementById('cardNumber').value.replace(/\s+/g, '');
-      const expMonth = document.getElementById('expMonth').value;
-      const expYear  = document.getElementById('expYear').value;
-      const cardCode = document.getElementById('cvv').value;
-
       return {
-        authData: {
-          clientKey: CONFIG.clientKey,
-          apiLoginID: CONFIG.apiLoginID
-        },
+        authData: { clientKey: CONFIG.clientKey, apiLoginID: CONFIG.apiLoginID },
         cardData: {
-          cardNumber: cardNumber,
-          month: expMonth,
-          year: expYear,
-          cardCode: cardCode
+          cardNumber: document.getElementById('cardNumber').value.replace(/\s+/g, ''),
+          month: document.getElementById('expMonth').value,
+          year: document.getElementById('expYear').value,
+          cardCode: document.getElementById('cvv').value
         }
       };
     }
 
     function collectItems() {
       const items = [];
-      const list = document.getElementById('itemsList');
-      const itemEls = list.querySelectorAll('.item');
-      itemEls.forEach(el => {
+      document.querySelectorAll('.item').forEach(el => {
         const serviceId = el.querySelector('.serviceId').value.trim();
-        const name = el.querySelector('.itemName').value.trim();
-        const price = parseFloat(el.querySelector('.itemPrice').value) || 0;
-        const quantity = parseInt(el.querySelector('.itemQty').value) || 1;
-        const deliveryType = el.querySelector('.deliveryType').value.trim() || "Online";
-        const shippingValue = el.querySelector('.shipping').value;
-        const shipping = shippingValue === 'true';
-
+        if (!serviceId) return;
         items.push({
-          serviceId: serviceId,
-          name: name,
-          price: price,
-          quantity: quantity,
-          deliveryType: deliveryType,
-          shipping: shipping
+          serviceId,
+          name: el.querySelector('.itemName').value.trim(),
+          price: parseFloat(el.querySelector('.itemPrice').value) || 0,
+          quantity: parseInt(el.querySelector('.itemQty').value) || 1,
+          deliveryType: el.querySelector('.deliveryType').value.trim(),
+          shipping: el.querySelector('.shipping').value === 'true'
         });
       });
       return items;
     }
 
     function createRequestPayload(opaqueDataValue) {
-      // matches the shape you posted
+      const metadataText = document.getElementById('metadata').value.trim();
+      let metadata = null;
+      if (metadataText) {
+        try { metadata = metadataText; } // هيبعت كـ string
+        catch (e) { throw new Error("Invalid JSON in metadata"); }
+      }
+
       return {
         firstName: document.getElementById('firstName').value.trim(),
         lastName: document.getElementById('lastName').value.trim(),
         address: document.getElementById('address').value.trim(),
-        country: document.getElementById('country').value.trim(), // earlier example had "country":"New York" - adjust if needed
+        country: document.getElementById('country').value.trim(),
         state: document.getElementById('state').value.trim(),
         county: document.getElementById('county').value.trim(),
         city: document.getElementById('city').value.trim(),
         zip: document.getElementById('zip').value.trim(),
         contactInfo: document.getElementById('contactInfo').value.trim(),
         cardToken: opaqueDataValue,
-        promoCode: document.getElementById('promoCode').value.trim() || "",
+        promoCode: document.getElementById('promoCode').value.trim() || null,
+        metadata: metadata, // JSON string
         items: collectItems()
       };
     }
@@ -252,92 +213,53 @@
       try {
         const res = await fetch(CONFIG.payEndpoint, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json',
-                     'Authorization': 'Bearer ' + AUTH_BEARER
-           },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + AUTH_BEARER
+          },
           body: JSON.stringify(payload)
         });
-
         const text = await res.text();
-        try {
-          const json = JSON.parse(text);
-          return { ok: res.ok, status: res.status, body: json };
-        } catch (e) {
-          return { ok: res.ok, status: res.status, body: { raw: text } };
-        }
+        try { return { ok: res.ok, status: res.status, body: JSON.parse(text) }; }
+        catch { return { ok: res.ok, status: res.status, body: { raw: text } }; }
       } catch (err) {
-        return { ok:false, status:0, body: { error: err.message || String(err) } };
+        return { ok: false, body: { error: err.message } };
       }
     }
 
     function acceptResponseHandler(response) {
-  console.log("Accept.js raw response:", response);
-
-  // handle real error (no opaqueData at all)
-  if (!response || !response.opaqueData || !response.opaqueData.dataValue) {
-    setLoading(false);
-    const errMsg =
-      response?.messages?.message?.map(m => m.text).join(" | ") ||
-      "Tokenization failed: no data returned.";
-    showStatus(errMsg, "error");
-    return;
-  }
-
-  // handle success even if resultCode says "Error"
-  const token = response.opaqueData.dataValue;
-  const payload = createRequestPayload(token);
-
-  console.log("Sending payload to backend:", payload);
-
-  postOrder(payload).then(result => {
-    setLoading(false);
-    if (result.ok) {
-      const b = result.body;
-      if (b?.Success) {
-        showStatus(
-          "Payment success! OrderId: " +
-            (b.OrderId ?? "") +
-            " — " +
-            (b.Message ?? ""),
-          "success"
-        );
-      } else {
-        showStatus("Payment failed: " + (b?.Error ?? JSON.stringify(b)), "error");
+      console.log("Accept.js response:", response);
+      if (!response?.opaqueData?.dataValue) {
+        setLoading(false);
+        showStatus("Tokenization failed: " + (response?.messages?.message?.[0]?.text || "Unknown error"), "error");
+        return;
       }
-    } else {
-      showStatus(
-        "Server error (" + result.status + "): " + JSON.stringify(result.body),
-        "error"
-      );
-    }
-  });
-}
-    payBtn.addEventListener('click', function () {
-      clearStatus();
 
-      // minimal validation
-      const required = ['cardNumber','expMonth','expYear','cvv','firstName','lastName','contactInfo'];
-      for (const id of required) {
-        const el = document.getElementById(id);
-        if (!el || !el.value.trim()) {
-          showStatus("Please fill all required fields.", "error");
-          return;
+      const payload = createRequestPayload(response.opaqueData.dataValue);
+      console.log("Sending to backend:", payload);
+
+      postOrder(payload).then(result => {
+        setLoading(false);
+        if (result.ok && result.body.Success) {
+          showStatus(`Payment SUCCESS! Order ID: ${result.body.OrderId} | Appointment Booked!`, "success");
+        } else {
+          showStatus("Payment failed: " + (result.body.Error || JSON.stringify(result.body)), "error");
         }
-      }
+      });
+    }
 
+    payBtn.onclick = () => {
+      clearStatus();
       setLoading(true);
-
-      const secureData = buildSecureData();
       try {
-        Accept.dispatchData(secureData, acceptResponseHandler);
+        Accept.dispatchData(buildSecureData(), acceptResponseHandler);
       } catch (ex) {
         setLoading(false);
-        showStatus("Accept.js error: " + (ex.message || ex), "error");
+        showStatus("Accept.js error: " + ex.message, "error");
       }
-    });
+    };
 
   })();
   </script>
-
 </body>
 </html>
