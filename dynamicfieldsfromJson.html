@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Service Admin Builder</title>
+
+<style>
+body { font-family: Arial; background:#f5f5f5; padding:20px }
+section { background:#fff; padding:15px; margin-bottom:20px; border-radius:8px }
+.row { border:1px solid #ddd; padding:10px; margin-bottom:10px; border-radius:6px }
+label { display:block; font-weight:bold; margin-top:5px }
+input, select, textarea { width:100%; padding:6px }
+button { margin-top:10px }
+.remove { background:#c00; color:#fff }
+pre { background:#111; color:#0f0; padding:15px }
+</style>
+</head>
+
+<body>
+
+<h1>Dynamic Service Builder</h1>
+
+<section>
+<h2>Admin – Fields</h2>
+<div id="fieldsContainer"></div>
+<button onclick="addField()">+ Add Field</button>
+</section>
+
+<section>
+<h2>Admin – Required Files</h2>
+<div id="filesContainer"></div>
+<button onclick="addFile()">+ Add File</button>
+</section>
+
+<section>
+<button onclick="generateUserForm()">Generate User Form</button>
+</section>
+
+<section>
+<h2>User Form</h2>
+<form id="userForm"></form>
+<pre id="output"></pre>
+</section>
+
+<script>
+/*********************
+ * STATE
+ *********************/
+let fields = [];
+let files = [];
+
+/*********************
+ * ADD FIELD ROW
+ *********************/
+function addField() {
+  const id = crypto.randomUUID();
+
+  fields.push({ id });
+
+  const row = document.createElement("div");
+  row.className = "row";
+  row.dataset.id = id;
+
+  row.innerHTML = `
+    <label>Label</label>
+    <input class="f-label">
+
+    <label>Type</label>
+    <select class="f-type">
+      <option value="string">Text</option>
+      <option value="number">Number</option>
+      <option value="boolean">Checkbox</option>
+      <option value="select">Select</option>
+    </select>
+
+    <div class="options" style="display:none">
+      <label>Options (comma separated)</label>
+      <input class="f-options">
+    </div>
+
+    <label>
+      <input type="checkbox" class="f-required"> Required
+    </label>
+
+    <button type="button" class="remove" onclick="removeField('${id}')">
+      Remove
+    </button>
+  `;
+
+  row.querySelector(".f-type").onchange = e => {
+    row.querySelector(".options").style.display =
+      e.target.value === "select" ? "block" : "none";
+  };
+
+  document.getElementById("fieldsContainer").appendChild(row);
+}
+
+function removeField(id) {
+  fields = fields.filter(f => f.id !== id);
+  document.querySelector(`[data-id="${id}"]`).remove();
+}
+
+/*********************
+ * ADD FILE ROW
+ *********************/
+function addFile() {
+  const id = crypto.randomUUID();
+
+  files.push({ id });
+
+  const row = document.createElement("div");
+  row.className = "row";
+  row.dataset.id = id;
+
+  row.innerHTML = `
+    <label>File Name</label>
+    <input class="file-name">
+
+    <label>Accept</label>
+    <input class="file-accept" placeholder=".pdf,.png">
+
+    <label>
+      <input type="checkbox" class="file-required"> Required
+    </label>
+
+    <button type="button" class="remove" onclick="removeFile('${id}')">
+      Remove
+    </button>
+  `;
+
+  document.getElementById("filesContainer").appendChild(row);
+}
+
+function removeFile(id) {
+  files = files.filter(f => f.id !== id);
+  document.querySelector(`[data-id="${id}"]`).remove();
+}
+
+/*********************
+ * GENERATE USER FORM
+ *********************/
+function generateUserForm() {
+  const schema = {
+    fields: [],
+    files: []
+  };
+
+  // Build fields schema
+  document.querySelectorAll("#fieldsContainer .row").forEach(r => {
+    const label = r.querySelector(".f-label").value;
+    if (!label) return;
+
+    const type = r.querySelector(".f-type").value;
+    const required = r.querySelector(".f-required").checked;
+    const optionsInput = r.querySelector(".f-options");
+
+    schema.fields.push({
+      key: label.toLowerCase().replace(/\s/g, "_"),
+      label,
+      type,
+      required,
+      options: type === "select"
+        ? optionsInput.value.split(",").map(o => o.trim())
+        : null
+    });
+  });
+
+  // Build files schema
+  document.querySelectorAll("#filesContainer .row").forEach(r => {
+    const name = r.querySelector(".file-name").value;
+    if (!name) return;
+
+    schema.files.push({
+      id: crypto.randomUUID(),
+      label: name,
+      accept: r.querySelector(".file-accept").value,
+      required: r.querySelector(".file-required").checked
+    });
+  });
+
+  renderUserForm(schema);
+}
+
+/*********************
+ * RENDER USER FORM
+ *********************/
+function renderUserForm(schema) {
+  const form = document.getElementById("userForm");
+  form.innerHTML = "";
+
+  schema.files.forEach(f => {
+    form.innerHTML += `
+      <div class="row">
+        <label>${f.label}${f.required ? "*" : ""}</label>
+        <input type="file" accept="${f.accept}" ${f.required ? "required" : ""}>
+      </div>
+    `;
+  });
+
+  schema.fields.forEach(f => {
+    let input = "";
+
+    if (f.type === "string")
+      input = `<input name="${f.key}">`;
+
+    if (f.type === "number")
+      input = `<input type="number" name="${f.key}">`;
+
+    if (f.type === "boolean")
+      input = `<input type="checkbox" name="${f.key}">`;
+
+    if (f.type === "select")
+      input = `
+        <select name="${f.key}">
+          ${f.options.map(o => `<option>${o}</option>`).join("")}
+        </select>
+      `;
+
+    form.innerHTML += `
+      <div class="row">
+        <label>${f.label}${f.required ? "*" : ""}</label>
+        ${input}
+      </div>
+    `;
+  });
+
+  form.innerHTML += `<button type="submit">Submit</button>`;
+
+  form.onsubmit = e => {
+    e.preventDefault();
+    const data = {};
+
+    schema.fields.forEach(f => {
+      const el = form.querySelector(`[name="${f.key}"]`);
+      data[f.key] = f.type === "boolean" ? el.checked : el.value;
+    });
+
+    output.innerText = JSON.stringify({
+      jsonData: data,
+      filesCount: schema.files.length
+    }, null, 2);
+  };
+}
+</script>
+
+</body>
+</html>
